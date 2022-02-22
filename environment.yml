@@ -1,0 +1,26 @@
+name: WeakPoints
+channels:
+  - conda-forge
+  - pytorch
+  - defaults
+dependencies:
+  - python=3.8.3
+  - easydict=1.9
+  - hdf5=1.10.6
+  - imageio=2.9.0
+  - ipdb=0.13.4
+  - numpy=1.19.2
+  - opencv=4.5.0
+  - pandas=1.0.1
+  - pytorch=1.7.0
+  - torchvision=0.8.1
+  - scikit-image=0.17.2
+  - scikit-learn=0.23.2
+  - scipy=1.5.3
+  - shapely=1.7.1
+  - tensorboard=2.4.0
+  - termcolor=1.1.0
+  - tqdm=4.54.1
+  - yaml=0.2.5
+  - pillow=8.0.1
+  - matplotlib-base=3.3.3

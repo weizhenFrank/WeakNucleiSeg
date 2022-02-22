@@ -1,0 +1,45 @@
+
+id : ''
+dataname : 'MO'
+isTrain : True
+snapshot : 1
+data_dir : 'data'
+prepare_data : True
+tb_dir : 'tensorboard'
+
+model:
+  network: 'ResUNet34'
+  unet : {"add_coord": False, "filters": [512, 256, 128, 64, 64, 64, 2]}
+
+train:
+  random_seed : 1
+  n_epochs: 60
+  n_batches: 8
+  select : 'aji'
+  label_type : ['voronoi', 'cluster']
+  label_type_channel : [3, 3]
+  loss: 'ce'
+  loss_type_weight : [1.0, 1.0]
+
+  log_interval : 1
+  optimizer: Adam
+  momentum: 0.9
+  lr: 1.0e-4
+  weight_decay : 1.0e-4
+  start_epoch : 0
+  checkpoint : ""  #
+  check_start : 0
+
+test:
+  test_epoch : 'best'
+  save_flag : True
+  patch_size : 224
+  overlap : 80
+  model_path : ""
+
+post:
+  min_area : 20  # minimum area for an object
+
+transform_train:
+  label_encoding : 2  # indicate last 2 images are labels images for LabelEncoding 3 channel to 1
+
