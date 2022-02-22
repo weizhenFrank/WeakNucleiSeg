@@ -12,13 +12,13 @@ This page contains the code of "WEAKLY SUPERVISED NUCLEI SEGMENTATION VIA INSTAN
 conda env create -f environment.yml 
 ```
 
-### 1. Run SPN
+### 1. Train SPN
 
 ```angular2html
 python main.py --id SPN --cfg network/exp/MO/SPN.yaml --gpu 1
 ```
 
-### 2. Run IEN
+### 2. Train IEN
 
 ```angular2html
 python main.py --id IEN --cfg network/exp/MO/IEN.yaml --gpu 1
