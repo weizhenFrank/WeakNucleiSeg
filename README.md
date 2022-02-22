@@ -1,26 +1,44 @@
-This is the README.md file for WEAKLY SUPERVISED NUCLEI SEGMENTATION VIA INSTANCE LEARNING. 
-Here we use MO dataset as an example to illustrate how to run our method.  
+# WEAKLY SUPERVISED NUCLEI SEGMENTATION VIA INSTANCE LEARNING
 
-# Create environment
+## Description
+
+This page contains the code of "WEAKLY SUPERVISED NUCLEI SEGMENTATION VIA INSTANCE LEARNING" proposed
+ in [1].  
+
+### 0. Create environment
 
 ```angular2html
 conda env create -f environment.yml 
 ```
 
-# 1. Run SPN
+### 1. Run SPN
 
 ```angular2html
 python main.py --id SPN --cfg network/exp/MO/SPN.yaml --gpu 1
 ```
 
-# 2. Run IEN
+### 2. Run IEN
 
 ```angular2html
 python main.py --id IEN --cfg network/exp/MO/IEN.yaml --gpu 1
 ```
 
-# 3. Model inference
+### 3. Model inference
 
 ```angular2html
 python main.py --id IEN_infer --cfg network/exp/MO/IEN_infer.yaml --gpu 1
+```
+
+## Citation 
+If you find this code helpful, please cite our work:
+
+```angular2html
+@misc{liu2022weakly,
+      title={Weakly Supervised Nuclei Segmentation via Instance Learning}, 
+      author={Weizhen Liu and Qian He and Xuming He},
+      year={2022},
+      eprint={2202.01564},
+      archivePrefix={arXiv},
+      primaryClass={eess.IV}
+}
 ```
