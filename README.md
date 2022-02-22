@@ -2,8 +2,9 @@
 
 ## Description
 
-This page contains the code of "WEAKLY SUPERVISED NUCLEI SEGMENTATION VIA INSTANCE LEARNING" proposed
- in [1].  
+This page contains the code of "WEAKLY SUPERVISED NUCLEI SEGMENTATION VIA INSTANCE LEARNING". 
+
+## Run the code
 
 ### 0. Create environment
 
