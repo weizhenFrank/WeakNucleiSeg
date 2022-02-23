@@ -3,7 +3,7 @@
 ## Description
 
 This page contains the code of "WEAKLY SUPERVISED NUCLEI SEGMENTATION VIA INSTANCE LEARNING". 
-This work has been accepted by IEEE International Symposium on Biomedical Imaging (ISBI), 2022 as **Oral 
+This work has been accepted by *IEEE International Symposium on Biomedical Imaging (ISBI), 2022* as **Oral 
 Presentation**. For more details, please refer to https://arxiv.org/abs/2202.01564.
 
 ## Run the code
