@@ -3,6 +3,8 @@
 ## Description
 
 This page contains the code of "WEAKLY SUPERVISED NUCLEI SEGMENTATION VIA INSTANCE LEARNING". 
+This work has been accepted by IEEE International Symposium on Biomedical Imaging (ISBI), 2022 as **Oral 
+Presentation**. For more details, please refer to https://arxiv.org/abs/2202.01564.
 
 ## Run the code
 
@@ -34,12 +36,10 @@ python main.py --id IEN_infer --cfg network/exp/MO/IEN_infer.yaml --gpu 1
 If you find this code helpful, please cite our work:
 
 ```angular2html
-@misc{liu2022weakly,
-      title={Weakly Supervised Nuclei Segmentation via Instance Learning}, 
-      author={Weizhen Liu and Qian He and Xuming He},
-      year={2022},
-      eprint={2202.01564},
-      archivePrefix={arXiv},
-      primaryClass={eess.IV}
+@article{liu2022weakly,
+  title={Weakly Supervised Nuclei Segmentation via Instance Learning},
+  author={Liu, Weizhen and He, Qian and He, Xuming},
+  journal={arXiv preprint arXiv:2202.01564},
+  year={2022}
 }
 ```
