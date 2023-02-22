@@ -11,7 +11,8 @@ Presentation**. For more details, please refer to https://arxiv.org/abs/2202.015
 ### 0. Create environment
 
 ```angular2html
-conda env create -f environment.yml 
+conda create -n nucseg python=3.7 h5py
+pip install -r requirements.txt
 ```
 
 ### 1. Train SPN
