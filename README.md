@@ -12,6 +12,7 @@ Presentation**. For more details, please refer to https://arxiv.org/abs/2202.015
 
 ```angular2html
 conda create -n nucseg python=3.7 h5py
+conda activate nucseg
 pip install -r requirements.txt
 ```
 
