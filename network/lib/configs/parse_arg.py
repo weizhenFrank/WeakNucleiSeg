@@ -47,13 +47,13 @@ def config_complete(arguments, configure):
 
     exp_dir = f"{configure.dataname}/{configure.id}"
 
-    configure.data.train_data_dir = f'./data_for_train/{configure.dataname}'
+    configure.data.train_data_dir = f'./data_for_train/{configure.dataname}/{configure.partial}'
     configure.data.img_dir = f'{configure.data.train_data_dir}/images'
 
-    configure.data.label_dir = f'./data/{configure.dataname}/labels_instance'
-    configure.data.mask_dir = f'./data/{configure.dataname}/labels_prob'
+    configure.data.label_dir = f'./data/{configure.dataname}/{configure.partial}/labels_instance'
+    configure.data.mask_dir = f'./data/{configure.dataname}/{configure.partial}/labels_prob'
 
-    configure.data.label_point_dir = f'./data/{configure.dataname}/labels_point'
+    configure.data.label_point_dir = f'./data/{configure.dataname}/{configure.partial}/labels_point'
 
     configure.save_checkpoint_dir = f"{configure.save_checkpoint_dir}/{exp_dir}"
     configure.log_dir = f"{configure.log_dir}/{exp_dir}"
