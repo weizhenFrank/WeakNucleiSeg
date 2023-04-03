@@ -34,7 +34,9 @@ def update_config(arguments, configure):
                         configure[k] = v
                 else:
                     configure[k] = v
-
+    # arguments as command line arguments has higher priority
+    for k, v in arguments.__dict__.items():
+        configure[k] = v
     return configure
 
 
