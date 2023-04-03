@@ -12,6 +12,8 @@ def parse_args(description=''):
                         help='experiment configure file name', type=str)
     parser.add_argument('--id', default='exp', type=str, help='Experiment ID')
     parser.add_argument('--gpu', default='0', type=str, help='GPU')
+    parser.add_argument('--partial', default=1, type=float, help='Ratio of sampling for number of points')
+
     args = parser.parse_args()
 
     return args

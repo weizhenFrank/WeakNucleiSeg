@@ -5,6 +5,7 @@ isTrain : True
 snapshot : 1
 data_dir : 'data'
 prepare_data : True
+partial: 0.75
 tb_dir : 'tensorboard'
 
 model:
@@ -29,6 +30,7 @@ train:
   start_epoch : 0
   checkpoint : ""  #
   check_start : 0
+  
 
 test:
   test_epoch : 'best'

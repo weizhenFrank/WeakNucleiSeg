@@ -42,10 +42,11 @@ def main(opt):
         data_list = json.load(split_file)
         train_list = data_list['train']
 
-    if not opt.use_instance_seg:
+    if not opt.use_instance_seg:            
         # ------ create point label from instance label
         create_point_label_with_binary_mask_from_instance(label_instance_dir, label_point_dir, label_binary_mask_dir,
-                                                          train_list)
+                                                          train_list, partial=opt.partial
+                                                          )
         if 'voronoi' in opt.train.label_type:
             # ------ create Voronoi label from point label
             create_Voronoi_label(label_point_dir, label_vor_dir, train_list)
@@ -85,7 +86,7 @@ def main(opt):
     compute_mean_std(data_dir, train_data_dir)
 
 
-def create_point_label_with_binary_mask_from_instance(data_dir, save_point_dir, save_binary_mask_dir, train_list):
+def create_point_label_with_binary_mask_from_instance(data_dir, save_point_dir, save_binary_mask_dir, train_list, partial=1):
     if create_folder(save_point_dir) and create_folder(save_binary_mask_dir):
 
         print("Generating point label and binary mask from instance label...")
@@ -109,8 +110,8 @@ def create_point_label_with_binary_mask_from_instance(data_dir, save_point_dir, 
                 if np.sum(nucleus) == 0:
                     continue
                 x, y = get_point(nucleus)
-                label_point[x, y] = 255
-
+                if np.random.rand() < partial:
+                    label_point[x, y] = 255                
             imageio.imwrite('{:s}/{:s}_point.png'.format(save_point_dir, name), label_point.astype(np.uint8))
             image_binary_mask = image > 0
             imageio.imwrite('{:s}/{:s}_binary.png'.format(save_binary_mask_dir, name),
