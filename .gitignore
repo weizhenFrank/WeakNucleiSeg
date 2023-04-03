@@ -5,5 +5,15 @@
 *pyc
 tensorboard/
 data_for_*
+log
+output
+checkpoints
+patches
+labels_voronoi
+labels_cluster
+labels_binary
+labels_point
+
+
 
 
