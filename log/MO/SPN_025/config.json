@@ -1,0 +1,145 @@
+{
+   "prepare_data": true,
+   "isTrain": true,
+   "snapshot": 1,
+   "use_instance_seg": false,
+   "dataname": "MO",
+   "data_dir": "data",
+   "save_checkpoint_dir": "./checkpoints/MO/SPN_025",
+   "log_dir": "./log/MO/SPN_025",
+   "output_dir": "./output/MO/SPN_025",
+   "intermediate_dir": "./inter/MO/SPN_025",
+   "tb_dir": "tensorboard/MO/SPN_025",
+   "data": {
+      "num_workers": 0,
+      "train_data_dir": "./data_for_train/MO",
+      "img_dir": "./data_for_train/MO/images",
+      "label_dir": "./data/MO/labels_instance",
+      "mask_dir": "./data/MO/labels_prob",
+      "label_point_dir": "./data/MO/labels_point"
+   },
+   "model": {
+      "network": "ResUNet34",
+      "unet": {
+         "add_coord": false,
+         "filters": [
+            512,
+            256,
+            128,
+            64,
+            64,
+            64,
+            2
+         ]
+      }
+   },
+   "train": {
+      "random_seed": 1,
+      "n_epochs": 60,
+      "n_batches": 8,
+      "select": "aji",
+      "metrics": [
+         "acc",
+         "p_iou",
+         "p_F1",
+         "aji",
+         "dice"
+      ],
+      "label_type": [
+         "voronoi",
+         "cluster"
+      ],
+      "label_type_channel": [
+         3,
+         3
+      ],
+      "loss_weight": [
+         1.0,
+         1.0
+      ],
+      "loss_type_weight": [
+         1.0,
+         1.0
+      ],
+      "log_interval": 1,
+      "lr": 0.0001,
+      "momentum": 0.9,
+      "weight_decay": 0.0001,
+      "optimizer": "Adam",
+      "scheduler": "MultiStep",
+      "milestone": [
+         99999999,
+         999999999
+      ],
+      "cutoff": 0.5,
+      "add_bg": false,
+      "bg_cutoff": 0.01,
+      "bg_weight": 1,
+      "start_epoch": 0,
+      "checkpoint": "",
+      "loss": "ce",
+      "check_start": 0
+   },
+   "test": {
+      "test_epoch": "best",
+      "save_flag": true,
+      "patch_size": 224,
+      "overlap": 80,
+      "model_path": "",
+      "cluster": false,
+      "seg_model_path": "",
+      "rawout": false,
+      "only_patch": false
+   },
+   "post": {
+      "min_area": 20,
+      "cutoff": 0.5,
+      "cluster_method": "Kmeans",
+      "bandwidth": 1.5,
+      "ins_post": false,
+      "whole_patch": false,
+      "cluster_all": true
+   },
+   "transform_train": {
+      "random_resize": [
+         0.8,
+         1.25
+      ],
+      "horizontal_flip": true,
+      "random_affine": 0.3,
+      "random_rotation": 90,
+      "random_crop": 224,
+      "label_encoding": 2,
+      "to_tensor": 1,
+      "normalize": [
+         [
+            0.7477097,
+            0.54574299,
+            0.67144866
+         ],
+         [
+            0.1580947,
+            0.19779244,
+            0.15096586
+         ]
+      ]
+   },
+   "transform_val": {
+      "to_tensor": 1,
+      "normalize": [
+         [
+            0.7477097,
+            0.54574299,
+            0.67144866
+         ],
+         [
+            0.1580947,
+            0.19779244,
+            0.15096586
+         ]
+      ]
+   },
+   "id": "SPN_025",
+   "partial": 0.75,
+   "gpus": "2"
+}
