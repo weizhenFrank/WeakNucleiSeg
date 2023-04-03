@@ -4,8 +4,6 @@ ipdb
 numpy
 opencv-python
 pandas
-torch
-torchvision
 scikit-image
 scikit-learn
 scipy

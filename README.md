@@ -8,11 +8,12 @@ Presentation**. For more details, please refer to https://arxiv.org/abs/2202.015
 
 ## Run the code
 
-### 0. Create environment
+### 0. Create environment under CUDA 10.2
 
 ```angular2html
 conda create -n nucseg python=3.7 h5py
 conda activate nucseg
+pip install torch==1.4.0 torchvision==0.5.0 -f https://download.pytorch.org/whl/cu102/torch_stable.html
 pip install -r requirements.txt
 ```
 
