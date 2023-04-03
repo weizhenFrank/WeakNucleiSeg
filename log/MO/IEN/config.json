@@ -1,0 +1,146 @@
+{
+   "prepare_data": true,
+   "isTrain": true,
+   "snapshot": 50,
+   "use_instance_seg": true,
+   "dataname": "MO",
+   "data_dir": "data",
+   "save_checkpoint_dir": "./checkpoints/MO/IEN",
+   "log_dir": "./log/MO/IEN",
+   "output_dir": "./output/MO/IEN",
+   "intermediate_dir": "./inter/MO/IEN",
+   "tb_dir": "tensorboard/MO/IEN",
+   "data": {
+      "num_workers": 0,
+      "train_data_dir": "./data_for_train/MO",
+      "img_dir": "./data_for_train/MO/images",
+      "label_dir": "./data/MO/labels_instance",
+      "mask_dir": "./data/MO/labels_prob",
+      "label_point_dir": "./data/MO/labels_point"
+   },
+   "model": {
+      "network": "ResUNet34",
+      "unet": {
+         "add_coord": true,
+         "filters": [
+            512,
+            256,
+            128,
+            64,
+            64,
+            64,
+            16
+         ]
+      }
+   },
+   "train": {
+      "random_seed": 1,
+      "n_epochs": 1000,
+      "n_batches": 8,
+      "select": "aji",
+      "metrics": [
+         "acc",
+         "p_iou",
+         "p_F1",
+         "aji",
+         "dice"
+      ],
+      "label_type": [
+         "prob",
+         "voronoi"
+      ],
+      "label_type_channel": [
+         1,
+         3
+      ],
+      "loss_weight": [
+         1.0,
+         1.0
+      ],
+      "loss_type_weight": [
+         1.0,
+         1.0
+      ],
+      "log_interval": 1,
+      "lr": 0.001,
+      "momentum": 0.9,
+      "weight_decay": 0,
+      "optimizer": "Adam",
+      "scheduler": "MultiStep",
+      "milestone": [
+         99999999,
+         999999999
+      ],
+      "cutoff": 0.5,
+      "add_bg": true,
+      "bg_cutoff": [
+         0,
+         0.3
+      ],
+      "bg_weight": 1,
+      "start_epoch": 0,
+      "checkpoint": "",
+      "check_start": 0
+   },
+   "test": {
+      "test_epoch": "best",
+      "save_flag": true,
+      "patch_size": 224,
+      "overlap": 80,
+      "model_path": "",
+      "cluster": false,
+      "seg_model_path": "checkpoints/MO/SPN/checkpoints/checkpoint_best.pth.tar",
+      "rawout": false,
+      "only_patch": false
+   },
+   "post": {
+      "min_area": 20,
+      "cutoff": 0.3,
+      "cluster_method": "mean_shift",
+      "bandwidth": 1.5,
+      "ins_post": true,
+      "whole_patch": false,
+      "cluster_all": true
+   },
+   "transform_train": {
+      "random_resize": [
+         0.8,
+         1.25
+      ],
+      "horizontal_flip": true,
+      "random_affine": 0.3,
+      "random_rotation": 90,
+      "random_crop": 224,
+      "label_encoding": 1,
+      "to_tensor": 1,
+      "normalize": [
+         [
+            0.7477097,
+            0.54574299,
+            0.67144866
+         ],
+         [
+            0.1580947,
+            0.19779244,
+            0.15096586
+         ]
+      ]
+   },
+   "transform_val": {
+      "to_tensor": 1,
+      "normalize": [
+         [
+            0.7477097,
+            0.54574299,
+            0.67144866
+         ],
+         [
+            0.1580947,
+            0.19779244,
+            0.15096586
+         ]
+      ]
+   },
+   "id": "IEN",
+   "gpus": "1"
+}
