@@ -2,7 +2,8 @@
 *png
 *tiff
 *txt
-*pyc
+*.pyc
+*.csv
 tensorboard/
 data_for_*
 log

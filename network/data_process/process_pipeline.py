@@ -28,6 +28,7 @@ def main(opt):
 
     label_instance_dir = './data/{:s}/labels_instance'.format(dataset)
     label_point_dir = './data/{:s}/{:.2f}/labels_point'.format(dataset, opt.partial)
+    
     label_binary_mask_dir = './data/{:s}/{:.2f}/labels_binary'.format(dataset, opt.partial)
     label_vor_dir = './data/{:s}/{:.2f}/labels_voronoi'.format(dataset, opt.partial)
     label_cluster_dir = './data/{:s}/{:.2f}/labels_cluster'.format(dataset, opt.partial)
@@ -37,6 +38,9 @@ def main(opt):
     train_data_dir = './data_for_train/{:s}/{:.2f}'.format(dataset, opt.partial)
     split = '{:s}/train_val_test.json'.format(data_dir)
     stats_path = '{:s}/{:.2f}/stats.csv'.format(data_dir, opt.partial)
+    
+    if not os.path.exists('./data/{:s}/{:.2f}/labels_instance'.format(dataset, opt.partial)):
+        shutil.copytree(label_instance_dir, './data/{:s}/{:.2f}/labels_instance'.format(dataset, opt.partial))
 
     with open(split, 'r') as split_file:
         data_list = json.load(split_file)
