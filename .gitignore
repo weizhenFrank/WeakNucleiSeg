@@ -4,5 +4,7 @@
 *txt
 *pyc
 tensorboard/
+checkpoints/
+log/
 
 
