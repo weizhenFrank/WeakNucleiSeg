@@ -1,4 +1,4 @@
-*pth.tar
+*.pth.tar
 *png
 *tiff
 *txt
@@ -8,7 +8,7 @@ tensorboard/
 data_for_*
 log
 output
-checkpoints
+checkpoints/
 patches
 labels_voronoi
 labels_cluster

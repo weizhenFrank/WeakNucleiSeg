@@ -97,7 +97,7 @@ class BioSeg(object):
             post_fix.append(to_append)
             dir_list.append(sub_label_dirs[label_type])
             num_channels.append(self.label_type_channel[idx])
-
+            
         train_set = DataFolder(dir_list, post_fix, num_channels, self.data_transforms['train'])
         train_loader = DataLoader(train_set, batch_size=self.opt.train.n_batches, shuffle=True,
                                   num_workers=self.opt.data.num_workers)

@@ -48,23 +48,27 @@ def main(opt):
 
     if not opt.use_instance_seg:            
         # ------ create point label from instance label
-        create_point_label_with_binary_mask_from_instance(label_instance_dir, label_point_dir, label_binary_mask_dir,
-                                                          train_list, partial=opt.partial
-                                                          )
+        create_point_label_with_binary_mask_from_instance(label_instance_dir, label_point_dir, label_binary_mask_dir,train_list, partial=opt.partial)
+                                                                                    
         if 'voronoi' in opt.train.label_type:
             # ------ create Voronoi label from point label
             create_Voronoi_label(label_point_dir, label_vor_dir, train_list)
             split_patches(label_vor_dir, '{:s}/labels_voronoi'.format(patch_folder), 'label_vor')
-
+        
+        # ------ create cluster label from point label and image
         if 'cluster' in opt.train.label_type:
             if not os.path.exists(stats_path):
                 if 'MO' in dataset:
                     box_size = 60
                 else:
                     box_size = 80
+                    
+                # if opt.partial == 1:
                 Kdist_dir(img_dir, split, stats_path, True, box_size, label_point_dir)
-            # ------ create cluster label from point label and image
-            create_cluster_label(img_dir, label_point_dir, label_vor_dir, label_cluster_dir, train_list, stats_path)
+                create_cluster_label(img_dir, label_point_dir, label_vor_dir, label_cluster_dir, train_list, stats_path)
+                # else:
+            
+                    
             split_patches(label_cluster_dir, '{:s}/labels_cluster'.format(patch_folder), 'label_cluster')
 
         # ------ split large images into 250x250 patches
@@ -238,7 +242,6 @@ def create_cluster_label_old(data_dir, label_point_dir, label_vor_dir, save_dir,
 def create_cluster_label(data_dir, label_point_dir, label_vor_dir, save_dir, train_list, stats_path=None):
     if create_folder(save_dir):
         print("Generating cluster label from point label...")
-
         stats = pd.read_csv(stats_path, index_col=0)
 
         for img_name in tqdm(train_list):
@@ -261,14 +264,16 @@ def create_cluster_label(data_dir, label_point_dir, label_vor_dir, save_dir, tra
             kmeans = KMeans(n_clusters=3, random_state=0, ).fit(emb)
             clusters = np.reshape(kmeans.labels_, (h, w))
             out = kcluster_post(clusters, vor, point)
-
             imageio.imwrite('{:s}/{:s}_label_cluster.png'.format(save_dir, name), out)
-
+            
 
 def split_patches(data_dir, save_dir, post_fix="", ext="png"):
+    
     import math
     """ split large image into small patches """
+
     if create_folder(save_dir):
+        
         print("Spliting large {:s} images into small patches...".format(post_fix))
 
         image_list = os.listdir(data_dir)
@@ -319,23 +324,27 @@ def organize_data_for_training(data_dir, train_data_dir, opt):
 
     # train
     # images
+    
     if create_folder('{:s}/images/train/'.format(train_data_dir)):
+        
         for train_img_name in train_list:
             train_name = train_img_name.split('.')[0]
-            for img_file in glob.glob('{:s}/patches/images/{:s}*'.format(data_dir, train_name)):
+            for img_file in glob.glob('{:s}/{:.2f}/patches/images/{:s}*'.format(data_dir, opt.partial, train_name)):
                 img_file_name = img_file.split('/')[-1]
                 img_dst = '{:s}/images/train/{:s}'.format(train_data_dir, img_file_name)
                 shutil.copyfile(img_file, img_dst)
+                print(f"copying {img_file} to {img_dst}")
 
     # labels
     for label_name in opt.train.label_type:
         if create_folder('{:s}/labels_{:s}/train/'.format(train_data_dir, label_name)):
             for img_name in train_list:
                 name = img_name.split('.')[0]
-                for file in glob.glob('{:s}/patches/labels_{:s}/{:s}*'.format(data_dir, label_name, name)):
+                for file in glob.glob('{:s}/{:.2f}/patches/labels_{:s}/{:s}*'.format(data_dir, opt.partial, label_name, name)):
                     file_name = file.split('/')[-1]
                     dst = '{:s}/labels_{:s}/train/{:s}'.format(train_data_dir, label_name, file_name)
                     shutil.copyfile(file, dst)
+                    print(f"copying {img_file} to {img_dst}")
     # val & test
     for i in ['val', 'test']:
         if i == 'val':
@@ -351,6 +360,7 @@ def organize_data_for_training(data_dir, train_data_dir, opt):
                     file_name = file.split('/')[-1]
                     dst = '{:s}/images/{:s}/{:s}'.format(train_data_dir, i, file_name)
                     shutil.copyfile(file, dst)
+                    print(f"copying {img_file} to {img_dst}")
 
 
 def compute_mean_std(data_dir, train_data_dir):
