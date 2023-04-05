@@ -17,7 +17,7 @@ from network.lib.utils.load_model import load_param_from_file
 from network.lib.utils.losses import *
 from network.lib.utils.meter import TFBoardWriter, setup_logging
 from network.lib.utils.utils import save_checkpoint, copydir
-
+from tqdm import tqdm
 
 class BioSeg(object):
 
@@ -256,7 +256,8 @@ class BioSeg(object):
 
         val_results = dict()
         train_results = dict()
-        for epoch in range(self.opt.train.start_epoch, num_epochs):
+        
+        for epoch in tqdm(range(self.opt.train.start_epoch, num_epochs)):
             self.logger.info(f'Epoch: [{epoch + 1}/{num_epochs}]')
 
             train_loss_dict = self.train_epoch(self.model, self.logger)

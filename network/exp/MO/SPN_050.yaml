@@ -27,7 +27,7 @@ train:
   lr: 1.0e-4
   weight_decay : 1.0e-4
   start_epoch : 0
-  checkpoint : ""  #
+  checkpoint : "checkpoints/MO/SPN_050_exp/checkpoints/checkpoint.pth.tar"  #
   check_start : 0
   
 
