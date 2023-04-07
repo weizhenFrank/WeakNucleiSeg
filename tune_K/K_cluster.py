@@ -22,7 +22,7 @@ sys.path.insert(0, '/home/wliu25/projects/WeakNucleiSeg/')
 from network.lib.utils import get_point
 
 
-def main(partial=0.5, alpha=0.5, box_size=60):
+def main(partial=0.5, alpha=0.2, box_size=60):
     import warnings
     warnings.filterwarnings("ignore")
     
@@ -36,9 +36,8 @@ def main(partial=0.5, alpha=0.5, box_size=60):
     label_vor_dir = './data/{:s}/{:.2f}/labels_vor'.format(dataset, partial)
     split = '{:s}/train_val_test.json'.format(data_dir)
     stats_path = '{:s}/{:.2f}/stats.csv'.format(data_dir, partial)
-    label_binary_dir = '/home/wliu25/projects/WeakNucleiSeg/data/MO/1.00/labels_binary'
     
-    output_dir = './data/{:s}/{:.2f}/metrics/'.format(dataset, partial)
+    output_dir = f'./data/{dataset:s}/{partial:.2f}/metrics/{alpha}_{box_size}'
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     with open(split, 'r') as split_file:
@@ -60,7 +59,8 @@ def main(partial=0.5, alpha=0.5, box_size=60):
         Kdist_dir(img_dir, split, stats_path, True, box_size, label_point_dir)
         create_cluster_label(img_dir, label_point_dir, label_vor_dir, label_cluster_dir, img_list, stats_path, alpha=alpha)
     
-    cal_metrics(label_cluster_dir, label_binary_dir, img_list, output_dir)
+    fg_mean_f1 = cal_metrics(label_cluster_dir, label_instance_dir, img_list, output_dir)
+    return fg_mean_f1, partial, alpha, box_size
     
 
 def create_point_label(data_dir, save_point_dir, train_list, partial=1):
@@ -272,7 +272,7 @@ def Kdist(emb, size=9, use_local=False, guide=None):
 
 def Kdist_dir(img_dir, split, save_path=None, use_local=False, box_size=None, point_dir=None):
     print("Calculating std...It might take a while")
-    split = read_split(split, "train")
+    split = read_split(split, "train") + read_split(split, "val")
 
     stats = dict()
 
@@ -330,7 +330,7 @@ def cal_metrics(k_dir=None, label_dir=None, img_list=None, output_dir=None):
         
         name = i.split(".")[0]
         img = imageio.imread(os.path.join(k_dir, name + "_label_cluster.png"))
-        label = imageio.imread(os.path.join(label_dir, name + "_label_binary.png"))
+        label = (imageio.imread(os.path.join(label_dir, name + "_label.png")) > 0).astype(np.uint8)
         
         bin = (np.ones(img.shape[:2])*2).astype(np.uint8)
         bin[img[:,:, 0]==255] = 0
@@ -359,6 +359,7 @@ def cal_metrics(k_dir=None, label_dir=None, img_list=None, output_dir=None):
     fg_stats.to_csv(os.path.join(output_dir, "fg_stats.csv"))
     stats = pd.concat([bg_stats.mean().rename('bg_mean'), fg_stats.mean().rename('fg_mean')], axis=1)
     stats.to_csv(os.path.join(output_dir, "stats.csv"))
+    return stats['fg_mean']['f1']
     
     
 
@@ -371,5 +372,16 @@ def create_folder(folder):
         return False
 
 if __name__ == "__main__":
-    main()
+    result = {}
+    for i in [0.05, 0.10, 0.25, 1.00]:
+        fg_mean_f1, partial, alpha, box_size = main(partial=i)
+        result[f"{partial}_{alpha}_{box_size}"] = fg_mean_f1
+    
+    key_with_max_value = max(result, key=result.get)
+    print("max f1 is ", key_with_max_value, ":", result[key_with_max_value])
+    print(result)
+    print("done")
+
+        
+        
     
