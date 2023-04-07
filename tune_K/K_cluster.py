@@ -22,8 +22,9 @@ sys.path.insert(0, '/home/wliu25/projects/WeakNucleiSeg/')
 from network.lib.utils import get_point
 
 
-
 def main(partial=0.5, alpha=0.5, box_size=60):
+    import warnings
+    warnings.filterwarnings("ignore")
     
     dataset = 'MO'
     partial = partial
@@ -35,11 +36,16 @@ def main(partial=0.5, alpha=0.5, box_size=60):
     label_vor_dir = './data/{:s}/{:.2f}/labels_vor'.format(dataset, partial)
     split = '{:s}/train_val_test.json'.format(data_dir)
     stats_path = '{:s}/{:.2f}/stats.csv'.format(data_dir, partial)
+    label_binary_dir = '/home/wliu25/projects/WeakNucleiSeg/data/MO/1.00/labels_binary'
     
-
+    output_dir = './data/{:s}/{:.2f}/metrics/'.format(dataset, partial)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     with open(split, 'r') as split_file:
         data_list = json.load(split_file)
         img_list = data_list['train'] + data_list['val']
+        # img_list = data_list['train'] 
+
     
     create_point_label(label_instance_dir, label_point_dir, img_list, partial=partial)
                                                                                     
@@ -53,34 +59,37 @@ def main(partial=0.5, alpha=0.5, box_size=60):
             
         Kdist_dir(img_dir, split, stats_path, True, box_size, label_point_dir)
         create_cluster_label(img_dir, label_point_dir, label_vor_dir, label_cluster_dir, img_list, stats_path, alpha=alpha)
-
+    
+    cal_metrics(label_cluster_dir, label_binary_dir, img_list, output_dir)
+    
 
 def create_point_label(data_dir, save_point_dir, train_list, partial=1):
+    if create_folder(save_point_dir):
 
-    print("Generating point label and binary mask from instance label...")
-    image_list = os.listdir(data_dir)
+        print("Generating point label from instance label...")
+        image_list = os.listdir(data_dir)
 
-    for image_name in tqdm(image_list):
-        name = image_name.split('.')[0]
-        if '{:s}.png'.format(name[:-6]) not in train_list or name[-5:] != 'label':
-            continue
-
-        image_path = os.path.join(data_dir, image_name)
-        image = imageio.imread(image_path)
-        h, w = image.shape
-
-        # extract bbox
-        id_max = np.max(image)
-        label_point = np.zeros((h, w), dtype=np.uint8)
-
-        for i in range(1, id_max + 1):
-            nucleus = image == i
-            if np.sum(nucleus) == 0:
+        for image_name in tqdm(image_list):
+            name = image_name.split('.')[0]
+            if '{:s}.png'.format(name[:-6]) not in train_list or name[-5:] != 'label':
                 continue
-            x, y = get_point(nucleus)
-            if np.random.rand() < partial:
-                label_point[x, y] = 255                
-        imageio.imwrite('{:s}/{:s}_point.png'.format(save_point_dir, name), label_point.astype(np.uint8))
+
+            image_path = os.path.join(data_dir, image_name)
+            image = imageio.imread(image_path)
+            h, w = image.shape
+
+            # extract bbox
+            id_max = np.max(image)
+            label_point = np.zeros((h, w), dtype=np.uint8)
+
+            for i in range(1, id_max + 1):
+                nucleus = image == i
+                if np.sum(nucleus) == 0:
+                    continue
+                x, y = get_point(nucleus)
+                if np.random.rand() < partial:
+                    label_point[x, y] = 255                
+            imageio.imwrite('{:s}/{:s}_point.png'.format(save_point_dir, name), label_point.astype(np.uint8))
 
 
 def create_Voronoi_label(data_dir, save_dir, train_list, postfix='_label_point.png'):
@@ -89,75 +98,75 @@ def create_Voronoi_label(data_dir, save_dir, train_list, postfix='_label_point.p
     from network.lib.utils import voronoi_finite_polygons_2d, poly2mask
 
     print("Generating Voronoi label from point label...")
+    if create_folder(save_dir):
+        for img_name in tqdm(train_list):
+            name = img_name.split('.')[0]
 
-    for img_name in tqdm(train_list):
-        name = img_name.split('.')[0]
+            img_path = '{:s}/{:s}{:s}'.format(data_dir, name, postfix)
+            label_point = imageio.imread(img_path)
+            h, w = label_point.shape
 
-        img_path = '{:s}/{:s}{:s}'.format(data_dir, name, postfix)
-        label_point = imageio.imread(img_path)
-        h, w = label_point.shape
+            points = np.argwhere(label_point > 0)
+            vor = Voronoi(points)
 
-        points = np.argwhere(label_point > 0)
-        vor = Voronoi(points)
+            regions, vertices = voronoi_finite_polygons_2d(vor)
+            box = Polygon([[0, 0], [0, w], [h, w], [h, 0]])
+            region_masks = np.zeros((h, w), dtype=np.int16)
+            edges = np.zeros((h, w), dtype=np.bool)
+            count = 1
+            for region in regions:
+                polygon = vertices[region]
+                # Clipping polygon
+                poly = Polygon(polygon)
 
-        regions, vertices = voronoi_finite_polygons_2d(vor)
-        box = Polygon([[0, 0], [0, w], [h, w], [h, 0]])
-        region_masks = np.zeros((h, w), dtype=np.int16)
-        edges = np.zeros((h, w), dtype=np.bool)
-        count = 1
-        for region in regions:
-            polygon = vertices[region]
-            # Clipping polygon
-            poly = Polygon(polygon)
+                poly = poly.intersection(box)  # this is the key
+                polygon = np.array([list(p) for p in poly.exterior.coords])
+                try:
+                    mask = poly2mask(polygon[:, 0], polygon[:, 1], (h, w))
+                except:
+                    print(termcolor.colored("error on {:s} image:".format(name), "red"))
+                    continue
+                    # ipdb.set_trace()
+                edge = mask * (~morphology.erosion(mask, morphology.disk(1)))
+                edges += edge
+                region_masks[mask] = count
+                count += 1
 
-            poly = poly.intersection(box)  # this is the key
-            polygon = np.array([list(p) for p in poly.exterior.coords])
-            try:
-                mask = poly2mask(polygon[:, 0], polygon[:, 1], (h, w))
-            except:
-                print(termcolor.colored("error on {:s} image:".format(name), "red"))
-                continue
-                # ipdb.set_trace()
-            edge = mask * (~morphology.erosion(mask, morphology.disk(1)))
-            edges += edge
-            region_masks[mask] = count
-            count += 1
+            # fuse Voronoi edge and dilated points
+            label_point_dilated = morphology.dilation(label_point, morphology.disk(2))
+            label_vor = np.zeros((h, w, 3), dtype=np.uint8)
+            label_vor[:, :, 0] = morphology.closing(edges > 0, morphology.disk(1)).astype(np.uint8) * 255
+            label_vor[:, :, 1] = (label_point_dilated > 0).astype(np.uint8) * 255
 
-        # fuse Voronoi edge and dilated points
-        label_point_dilated = morphology.dilation(label_point, morphology.disk(2))
-        label_vor = np.zeros((h, w, 3), dtype=np.uint8)
-        label_vor[:, :, 0] = morphology.closing(edges > 0, morphology.disk(1)).astype(np.uint8) * 255
-        label_vor[:, :, 1] = (label_point_dilated > 0).astype(np.uint8) * 255
-
-        imageio.imwrite('{:s}/{:s}_label_vor.png'.format(save_dir, name), label_vor)
+            imageio.imwrite('{:s}/{:s}_label_vor.png'.format(save_dir, name), label_vor)
 
 
      
 def create_cluster_label(data_dir, label_point_dir, label_vor_dir, save_dir, train_list, stats_path=None, alpha=0.2, radius=20):
         print("Generating cluster label from point label...")
         stats = pd.read_csv(stats_path, index_col=0)
+        if create_folder(save_dir):
+            for img_name in tqdm(train_list):
+                name = img_name.split('.')[0]
+                scale = stats.loc[name, :][1]
 
-        for img_name in tqdm(train_list):
-            name = img_name.split('.')[0]
-            scale = stats.loc[name, :][1]
+                img = cv2.imread('{:s}/{:s}.png'.format(data_dir, name))
+                point = imageio.imread('{:s}/{:s}_label_point.png'.format(label_point_dir, name))
+                vor = imageio.imread('{:s}/{:s}_label_vor.png'.format(label_vor_dir, name))
 
-            img = cv2.imread('{:s}/{:s}.png'.format(data_dir, name))
-            point = imageio.imread('{:s}/{:s}_label_point.png'.format(label_point_dir, name))
-            vor = imageio.imread('{:s}/{:s}_label_vor.png'.format(label_vor_dir, name))
+                h, w, _ = img.shape
 
-            h, w, _ = img.shape
+                if 'MO' in data_dir:
+                    alpha, radius = alpha, 20
+                else:
+                    alpha, radius = 0.12, 18
 
-            if 'MO' in data_dir:
-                alpha, radius = alpha, 20
-            else:
-                alpha, radius = 0.12, 18
+                emb = get_emb(img, point, alpha=alpha, scale=scale, radius=radius)
 
-            emb = get_emb(img, point, alpha=alpha, scale=scale, radius=radius)
-
-            kmeans = KMeans(n_clusters=3, random_state=0, ).fit(emb)
-            clusters = np.reshape(kmeans.labels_, (h, w))
-            out = kcluster_post(clusters, vor, point)
-            imageio.imwrite('{:s}/{:s}_label_cluster.png'.format(save_dir, name), out)
+                kmeans = KMeans(n_clusters=3, random_state=0, ).fit(emb)
+                clusters = np.reshape(kmeans.labels_, (h, w))
+                out = kcluster_post(clusters, vor, point)
+                imageio.imwrite('{:s}/{:s}_label_cluster.png'.format(save_dir, name), out)
 
 
 def get_emb(img, point, alpha=None, scale=None, radius=20):
@@ -307,27 +316,60 @@ def creat_inslabel_from_se(split_file, split, se_dir, epoch, dst_dir):
         shutil.copyfile(img_path, dst)
 
 
-def cal_metrics(img_path, label_path):
+def cal_metrics(k_dir=None, label_dir=None, img_list=None, output_dir=None):
+    
     from sklearn.metrics import precision_recall_fscore_support as prf
     from sklearn.metrics import classification_report as cr
-    img_path = "/home/wliu25/projects/WeakNucleiSeg/data/MO/1.00/labels_cluster/Breast_TCGA-A7-A13F-01Z-00-DX1_label_cluster.png"
-    label_path = "/home/wliu25/projects/WeakNucleiSeg/data/MO/1.00/labels_binary/Breast_TCGA-A7-A13F-01Z-00-DX1_label_binary.png"
-    img = imageio.imread(img_path)
-    label = imageio.imread(label_path)
+    
+    bg_stats = {"precision": [], "recall": [], "f1": []}
+    fg_stats = {"precision": [], "recall": [], "f1": []}
+    
+    for i in img_list:
+        if not i.endswith(".png"):
+            continue
+        
+        name = i.split(".")[0]
+        img = imageio.imread(os.path.join(k_dir, name + "_label_cluster.png"))
+        label = imageio.imread(os.path.join(label_dir, name + "_label_binary.png"))
+        
+        bin = (np.ones(img.shape[:2])*2).astype(np.uint8)
+        bin[img[:,:, 0]==255] = 0
+        bin[img[:,:, 1]==255] = 1
 
-    bin = (np.ones(img.shape[:2])*2).astype(np.uint8)
-    bin[img[:,:, 0]==255] = 0
-    bin[img[:,:, 1]==255] = 1
+        label = label.reshape(-1) 
+        bin = bin.reshape(-1)
+        result_dict = cr(label.reshape(-1), bin.reshape(-1), target_names=['bg', 'nuclei', 'unknown'] , output_dict=True)
+        
+        bg_stats['recall'].append(result_dict['bg']['recall'])
+        bg_stats['precision'].append(result_dict['bg']['precision'])
+        bg_stats['f1'].append(result_dict['bg']['f1-score'])
+        
+        fg_stats['recall'].append(result_dict['nuclei']['recall'])
+        fg_stats['precision'].append(result_dict['nuclei']['precision'])
+        fg_stats['f1'].append(result_dict['nuclei']['f1-score'])
+    
 
-    result = cr(label.reshape(-1), bin.reshape(-1), target_names=['bg', 'nuclei', 'unknown'])
-    with open("debug_metric.txt", "w") as f:
-        f.write(result)
+    
+    names = [i.split(".")[0] for i in img_list]
+    bg_stats = pd.DataFrame.from_dict(bg_stats, orient='index', columns=names)
+    bg_stats = bg_stats.transpose()
+    bg_stats.to_csv(os.path.join(output_dir, "bg_stats.csv"))
+    fg_stats = pd.DataFrame.from_dict(fg_stats, orient='index', columns=names)
+    fg_stats = fg_stats.transpose()
+    fg_stats.to_csv(os.path.join(output_dir, "fg_stats.csv"))
+    stats = pd.concat([bg_stats.mean().rename('bg_mean'), fg_stats.mean().rename('fg_mean')], axis=1)
+    stats.to_csv(os.path.join(output_dir, "stats.csv"))
+    
+    
 
-    
-    
-    
-    
-    
+def create_folder(folder):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+        return True
+    else:
+        return False
+
 if __name__ == "__main__":
-    cal_metrics()
+    main()
     
