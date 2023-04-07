@@ -5,6 +5,7 @@ isTrain : True
 snapshot : 1
 data_dir : 'data'
 prepare_data : True
+partial: 1
 tb_dir : 'tensorboard'
 
 model:
@@ -13,7 +14,7 @@ model:
 
 train:
   random_seed : 1
-  n_epochs: 300
+  n_epochs: 60
   n_batches: 8
   select : 'aji'
   label_type : ['voronoi', 'cluster']
