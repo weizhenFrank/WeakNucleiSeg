@@ -2,7 +2,7 @@
 id : ''
 dataname : 'MO'
 isTrain : True
-snapshot : 1
+snapshot : 10
 data_dir : 'data'
 prepare_data : True
 partial: 1
