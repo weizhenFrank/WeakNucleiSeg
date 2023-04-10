@@ -25,26 +25,24 @@ from network.lib.utils import get_point
 def main(partial=0.5, alpha=0.2, box_size=60):
     import warnings
     warnings.filterwarnings("ignore")
-    
+    print(termcolor.colored("partial: {:.2f}, alpha: {:.2f}, box_size: {}".format(partial, alpha, box_size), "green"))
     dataset = 'MO'
-    partial = partial
     data_dir = f'./data/{dataset}'
     img_dir = f'./data/{dataset}/images'
     label_instance_dir = './data/{:s}/labels_instance'.format(dataset)
-    label_point_dir = './data/{:s}/{:.2f}/labels_point'.format(dataset, partial)
-    label_cluster_dir = './data/{:s}/{:.2f}/labels_cluster'.format(dataset, partial)
-    label_vor_dir = './data/{:s}/{:.2f}/labels_vor'.format(dataset, partial)
+    label_point_dir = './data/{:s}/{:.2f}_{:.2f}_{}/labels_point'.format(dataset, partial, alpha, box_size)
+    label_cluster_dir = './data/{:s}/{:.2f}_{:.2f}_{}/labels_cluster'.format(dataset, partial, alpha, box_size)
+    label_vor_dir = './data/{:s}/{:.2f}_{:.2f}_{}/labels_vor'.format(dataset, partial, alpha, box_size)
     split = '{:s}/train_val_test.json'.format(data_dir)
-    stats_path = '{:s}/{:.2f}/stats.csv'.format(data_dir, partial)
+    stats_path = '{:s}/{:.2f}_{:.2f}_{}/stats.csv'.format(data_dir, partial, alpha, box_size)
     
-    output_dir = f'./data/{dataset:s}/{partial:.2f}/metrics/{alpha}_{box_size}'
+    output_dir = f'./data/{dataset:s}/{partial:.2f}_{alpha}_{box_size}/metrics/'
+    
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     with open(split, 'r') as split_file:
         data_list = json.load(split_file)
         img_list = data_list['train'] + data_list['val']
-        # img_list = data_list['train'] 
-
     
     create_point_label(label_instance_dir, label_point_dir, img_list, partial=partial)
                                                                                     
@@ -172,6 +170,7 @@ def create_cluster_label(data_dir, label_point_dir, label_vor_dir, save_dir, tra
 def get_emb(img, point, alpha=None, scale=None, radius=20):
     dist = dist_tranform(255 - point).reshape(-1, 1)
     dist = np.clip(dist, a_min=0, a_max=radius)
+    
     max_dist = np.max(dist)
     print(max_dist)
     if max_dist != 0:
@@ -371,17 +370,64 @@ def create_folder(folder):
     else:
         return False
 
+
+def plot_metrics():
+    import matplotlib.pyplot as plt
+    bg_result = {}
+    fg_result = {}
+    
+    for i in [0.05, 0.10, 0.25, 0.5, 1.00]:
+        stats = pd.read_csv(f"./data/MO/tunedfor1/{i:.2f}/metrics/0.2_60/stats.csv", index_col=0)
+        fg_result[i] = stats['fg_mean'].to_dict()
+        bg_result[i] = stats['bg_mean'].to_dict()
+        
+    fg_result = pd.DataFrame.from_dict(fg_result, orient='index') 
+    ax = fg_result.plot(kind='line', marker='o', figsize=(10,6))
+
+    # Set the X-axis label
+    ax.set_xlabel('sampling rates')
+
+    # Set the Y-axis label
+    ax.set_ylabel('F1')
+
+    # Add a title to the chart
+    ax.set_title('Nuclei F1 score on different sampling rates')
+    plt.xticks(fg_result.index)
+    # Display the chart
+    plt.savefig("fg.png")
+
+    bg_result = pd.DataFrame.from_dict(bg_result, orient='index') 
+    
+    ax = bg_result.plot(kind='line', marker='o', figsize=(10,6))
+
+    # Set the X-axis label
+    ax.set_xlabel('sampling rates')
+
+    # Set the Y-axis label
+    ax.set_ylabel('F1')
+
+    # Add a title to the chart
+    ax.set_title('Background F1 score on different sampling rates')
+    plt.xticks(fg_result.index)
+    # Display the chart
+    plt.savefig("bg.png")
+
+
 if __name__ == "__main__":
     result = {}
-    for i in [0.05, 0.10, 0.25, 1.00]:
-        fg_mean_f1, partial, alpha, box_size = main(partial=i)
-        result[f"{partial}_{alpha}_{box_size}"] = fg_mean_f1
+    for i in [0.05, 0.10, 0.25, 0.5]:
+        for alpha in [0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.6, 0.8, 1, 2, 5, 10]:
+            for box_size in [10, 20, 40, 60, 80, 100, 120]:
+                
+                fg_mean_f1, partial, alpha, box_size = main(partial=i, alpha=alpha, box_size=box_size)
+                result[f"{partial}_{alpha}_{box_size}"] = fg_mean_f1
     
     key_with_max_value = max(result, key=result.get)
     print("max f1 is ", key_with_max_value, ":", result[key_with_max_value])
     print(result)
     print("done")
-
+    # plot_metrics()
+    # fg_mean_f1 = main(partial=1, alpha=0.21, box_size=60)
         
         
     
